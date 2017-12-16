@@ -1,0 +1,132 @@
+﻿@model GEOSUS_Projekt.Models.HomeViewModel
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="row" style="margin-bottom:10px;">
+</div>
+<br />
+<div class="row">
+    @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+    <div class="col-md-4">
+            @Html.ValidationSummary(true)
+            @Html.DropDownList("gradId", // 1. Store selected value in Model.State;
+                                                  // when page is rendered after postback,
+                                                  // take selected value from Model.State.
+
+                                                   // 2. Take list of values from Model.States
+                                                   Model.gradovi,
+
+                                                   // 3. Text for the first 'default' option
+                                                   "- Odaberite Grad -",
+
+                                                   //4. A class name to assign to <select> tag
+                                                   new { @class = "form-control", name = "gradId", id = "gradId" })
+
+
+    </div>
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-primary">Pretraga</button>
+    </div>
+    <div class="col-md-4">
+
+    </div>
+        }
+</div>
+<div class="row">
+    <div class="col-md-12">
+        @if (Model.odasiljaci != null)
+        {
+            <div id="nazivGrad" style="display:none;">@Model.odasiljaci[0].grad</div>
+            <div id="longGrad" style="display:none;">@Model.odasiljaci[0].gradX</div>
+            <div id="latGrad" style="display:none;">@Model.odasiljaci[0].gradY</div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Odasiljac</th>
+                        <th scope="col">Snaga [dbm]</th>
+                        <th scope="col">Latitude</th>
+                        <th scope="col">Longitude</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var i=0; i < Model.odasiljaci.Count(); i++)
+                    {
+                    <tr>
+                        <td>@(i+1)</td>
+                        <th scope="row" id="naziv@(i)">@Model.odasiljaci[i].odasiljac</th>
+                        <td id="snaga@(i)">@Model.odasiljaci[i].snaga.ToString("#.##")</td>
+                        <td id="long@(i)">@Model.odasiljaci[i].odasiljacX</td>
+                        <td id="lat@(i)">@Model.odasiljaci[i].odasiljacY</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+    </div>
+    <div class="col-md-12">
+        <div id="map" style="height:500px;"></div>
+    </div>
+</div>
+
+<script>
+    function initMap() {
+        var locations = [
+          [document.getElementById('naziv0').innerText, parseFloat(document.getElementById('lat0').innerText), parseFloat(document.getElementById('long0').innerText), document.getElementById('snaga0').innerText + ' dbm', 4],
+          [document.getElementById('naziv1').innerText, parseFloat(document.getElementById('lat1').innerText), parseFloat(document.getElementById('long1').innerText), document.getElementById('snaga1').innerText + ' dbm', 5],
+          [document.getElementById('naziv2').innerText, parseFloat(document.getElementById('lat2').innerText), parseFloat(document.getElementById('long2').innerText), document.getElementById('snaga2').innerText + ' dbm', 1],
+          [document.getElementById('naziv3').innerText, parseFloat(document.getElementById('lat3').innerText), parseFloat(document.getElementById('long3').innerText), document.getElementById('snaga3').innerText + ' dbm', 2],
+          [document.getElementById('naziv4').innerText, parseFloat(document.getElementById('lat4').innerText), parseFloat(document.getElementById('long4').innerText), document.getElementById('snaga4').innerText + ' dbm', 3],
+        ];
+
+        var centerX = parseFloat(document.getElementById('latGrad').innerText);
+        var centerY = parseFloat(document.getElementById('longGrad').innerText);
+
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 9,
+            center: new google.maps.LatLng(centerX, centerY),
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+
+        var infowindow = new google.maps.InfoWindow();
+
+        var marker, i;
+
+        //Dodavanje odasiljaca
+        for (i = 0; i < locations.length; i++) {
+            marker = new google.maps.Marker({
+                position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+                icon: 'http://www.deviantpics.com/images/2017/12/16/odasiljac.png',
+                map: map
+            });
+
+            google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                return function () {
+                    infowindow.setContent(locations[i][0] + '  (' + locations[i][3] + ')');
+                    infowindow.open(map, marker);
+                }
+            })(marker, i));
+        }
+
+        //Dodavanje lokacije grada
+        marker = new google.maps.Marker({
+            position: new google.maps.LatLng(centerX, centerY),
+            icon: 'http://www.deviantpics.com/images/2017/12/16/zastavica.png',
+            map: map
+        });
+
+        //google.maps.event.addListener(marker, 'click', (function (marker, 5) {
+        //    return function () {
+        //        infowindow.setContent(document.getElementById('nazivGrad').innerText);
+        //        infowindow.open(map, marker);
+        //    }
+        //})(marker, 5));
+
+      }
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCRw2ZrfAs3N39iiFqL80vWFR7CCogsrsY&callback=initMap">
+</script>
