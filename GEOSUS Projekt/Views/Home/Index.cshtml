@@ -9,30 +9,39 @@
 <div class="row">
     @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
-    <div class="col-md-4">
-            @Html.ValidationSummary(true)
-            @Html.DropDownList("gradId", // 1. Store selected value in Model.State;
-                                                  // when page is rendered after postback,
-                                                  // take selected value from Model.State.
+        <div class="col-md-4">
+                @Html.ValidationSummary(true)
+                @Html.DropDownList("gradId", // 1. Store selected value in Model.State;
+                                                      // when page is rendered after postback,
+                                                      // take selected value from Model.State.
 
-                                                   // 2. Take list of values from Model.States
-                                                   Model.gradovi,
+                                                       // 2. Take list of values from Model.States
+                                                       Model.gradovi,
 
-                                                   // 3. Text for the first 'default' option
-                                                   "- Odaberite Grad -",
+                                                       // 3. Text for the first 'default' option
+                                                       "- Odaberite Grad -",
 
-                                                   //4. A class name to assign to <select> tag
-                                                   new { @class = "form-control", name = "gradId", id = "gradId" })
+                                                       //4. A class name to assign to <select> tag
+                                                       new { @class = "form-control", name = "gradId", id = "gradId" })
 
 
-    </div>
-    <div class="col-md-4">
-        <button type="submit" class="btn btn-primary">Pretraga</button>
-    </div>
-    <div class="col-md-4">
-
-    </div>
-        }
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary">Pretraga</button>
+        </div>
+        <div class="col-md-2">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="prikaziRadijus" value="option1">
+                <label class="form-check-label" for="inlineCheckbox1">Prikaži Radijus</label>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="prikaziSve" value="option1">
+                <label class="form-check-label" for="inlineCheckbox1">Svi Odašiljači</label>
+            </div>
+        </div>
+    }
 </div>
 <div class="row">
     <div class="col-md-12">
@@ -46,21 +55,37 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Odasiljac</th>
+                        <th scope="col">Izvorna Snaga W</th>
+                        <th scope="col">Radijus [km pri -55 dbm]</th>
                         <th scope="col">Snaga [dbm]</th>
                         <th scope="col">Latitude</th>
                         <th scope="col">Longitude</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @for (var i=0; i < Model.odasiljaci.Count(); i++)
+                <tbody id="tablicaBody">
+                    @for (var i=0; i < 5; i++)
                     {
                     <tr>
                         <td>@(i+1)</td>
                         <th scope="row" id="naziv@(i)">@Model.odasiljaci[i].odasiljac</th>
+                        <td id="izvornaSnaga@(i)">@Model.odasiljaci[i].izvornaSnaga.ToString()</td>
+                        <td id="radijus@(i)">@Model.odasiljaci[i].radijus.ToString("#")</td>
                         <td id="snaga@(i)">@Model.odasiljaci[i].snaga.ToString("#.##")</td>
                         <td id="long@(i)">@Model.odasiljaci[i].odasiljacX</td>
                         <td id="lat@(i)">@Model.odasiljaci[i].odasiljacY</td>
                     </tr>
+                    }
+                    @for (var i = 5; i < Model.odasiljaci.Count(); i++)
+                    {
+                        <tr class="hidden">
+                            <td>@(i + 1)</td>
+                            <th scope="row" id="naziv@(i)">@Model.odasiljaci[i].odasiljac</th>
+                            <td id="izvornaSnaga@(i)">@Model.odasiljaci[i].izvornaSnaga.ToString()</td>
+                            <td id="radijus@(i)">@Model.odasiljaci[i].radijus.ToString("#")</td>
+                            <td id="snaga@(i)">@Model.odasiljaci[i].snaga.ToString("#.##")</td>
+                            <td id="long@(i)">@Model.odasiljaci[i].odasiljacX</td>
+                            <td id="lat@(i)">@Model.odasiljaci[i].odasiljacY</td>
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -71,16 +96,49 @@
         <div id="map" style="height:500px;"></div>
     </div>
 </div>
+<script src="/Scripts/jquery-1.10.2.js"></script>
+<script>
+    $(document).ready(function () {
+        //set initial state.
 
+        $('#prikaziRadijus').change(function () {
+            initMap();
+        });
+        $('#prikaziSve').change(function () {
+            initMap();
+        });
+
+    });
+</script>
 <script>
     function initMap() {
-        var locations = [
-          [document.getElementById('naziv0').innerText, parseFloat(document.getElementById('lat0').innerText), parseFloat(document.getElementById('long0').innerText), document.getElementById('snaga0').innerText + ' dbm', 4],
-          [document.getElementById('naziv1').innerText, parseFloat(document.getElementById('lat1').innerText), parseFloat(document.getElementById('long1').innerText), document.getElementById('snaga1').innerText + ' dbm', 5],
-          [document.getElementById('naziv2').innerText, parseFloat(document.getElementById('lat2').innerText), parseFloat(document.getElementById('long2').innerText), document.getElementById('snaga2').innerText + ' dbm', 1],
-          [document.getElementById('naziv3').innerText, parseFloat(document.getElementById('lat3').innerText), parseFloat(document.getElementById('long3').innerText), document.getElementById('snaga3').innerText + ' dbm', 2],
-          [document.getElementById('naziv4').innerText, parseFloat(document.getElementById('lat4').innerText), parseFloat(document.getElementById('long4').innerText), document.getElementById('snaga4').innerText + ' dbm', 3],
-        ];
+        var locations = [];
+
+        if ($('#prikaziSve').is(':checked'))
+        {
+            var rowCount = $('#tablicaBody tr').length;
+            for (var i = 0; i < rowCount; i++)
+            {
+                var naziv = 'naziv' + i.toString();
+                var lat = 'lat' + i.toString();
+                var long = 'long' + i.toString();
+                var snaga = 'snaga' + i.toString();
+                var radijus = 'radijus' + i.toString();
+
+                locations.push([document.getElementById(naziv).innerText, parseFloat(document.getElementById(lat).innerText), parseFloat(document.getElementById(long).innerText), document.getElementById(snaga).innerText + ' dbm', parseInt(document.getElementById(radijus).innerText), i]);
+            }
+        }
+        else
+        {
+            locations = [
+              [document.getElementById('naziv0').innerText, parseFloat(document.getElementById('lat0').innerText), parseFloat(document.getElementById('long0').innerText), document.getElementById('snaga0').innerText + ' dbm', parseInt(document.getElementById('radijus0').innerText), 4],
+              [document.getElementById('naziv1').innerText, parseFloat(document.getElementById('lat1').innerText), parseFloat(document.getElementById('long1').innerText), document.getElementById('snaga1').innerText + ' dbm', parseInt(document.getElementById('radijus1').innerText), 5],
+              [document.getElementById('naziv2').innerText, parseFloat(document.getElementById('lat2').innerText), parseFloat(document.getElementById('long2').innerText), document.getElementById('snaga2').innerText + ' dbm', parseInt(document.getElementById('radijus2').innerText), 1],
+              [document.getElementById('naziv3').innerText, parseFloat(document.getElementById('lat3').innerText), parseFloat(document.getElementById('long3').innerText), document.getElementById('snaga3').innerText + ' dbm', parseInt(document.getElementById('radijus3').innerText), 2],
+              [document.getElementById('naziv4').innerText, parseFloat(document.getElementById('lat4').innerText), parseFloat(document.getElementById('long4').innerText), document.getElementById('snaga4').innerText + ' dbm', parseInt(document.getElementById('radijus4').innerText), 3],
+            ];
+        }
+
 
         var centerX = parseFloat(document.getElementById('latGrad').innerText);
         var centerY = parseFloat(document.getElementById('longGrad').innerText);
@@ -91,27 +149,47 @@
             mapTypeId: google.maps.MapTypeId.ROADMAP
         });
 
+        // Prikaz poveznice do najboljeg
+        var poveznicaKoordinate = [
+            { lat: centerX, lng: centerY },
+            { lat: locations[0][1], lng: locations[0][2] }
+        ];
+
+        var poveznica = new google.maps.Polyline({
+            path: poveznicaKoordinate,
+            geodesic: true,
+            strokeColor: '#FF0000',
+            strokeOpacity: 1.0,
+            strokeWeight: 2
+        });
+
+        poveznica.setMap(map);
+
         var infowindow = new google.maps.InfoWindow();
 
         var marker, i;
 
-        //Dodavanje odasiljaca
+        // Dodavanje odasiljaca
         for (i = 0; i < locations.length; i++) {
             marker = new google.maps.Marker({
                 position: new google.maps.LatLng(locations[i][1], locations[i][2]),
                 icon: 'http://www.deviantpics.com/images/2017/12/16/odasiljac.png',
                 map: map
             });
+            
+            // Prikaz Radijusa
+            if ($('#prikaziRadijus').is(':checked'))
+            {
+                var circle = new google.maps.Circle({
+                    map: map,
+                    radius: locations[i][4],    // metres
+                    fillColor: '#0000aa',
+                    fillOpacity: 0.2,
+                    strokeOpacity: 0.2,
+                });
 
-            var circle = new google.maps.Circle({
-                map: map,
-                radius: 5000,    // metres
-                fillColor: '#0000aa',
-                fillOpacity: 0.2,
-                strokeOpacity: 0.2,
-            });
-
-            circle.bindTo('center', marker, 'position');
+                circle.bindTo('center', marker, 'position');
+            }
 
             google.maps.event.addListener(marker, 'click', (function (marker, i) {
                 return function () {
@@ -137,6 +215,7 @@
 
       }
 </script>
+
 <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCRw2ZrfAs3N39iiFqL80vWFR7CCogsrsY&callback=initMap">
 </script>

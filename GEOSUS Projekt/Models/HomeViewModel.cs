@@ -94,7 +94,7 @@ namespace GEOSUS_Projekt.Models
                     // Output rows 
                     while (dr.Read())
                     {
-                        Odasiljac result = new Models.Odasiljac(dr[0].ToString(), double.Parse(dr[1].ToString()), double.Parse(dr[2].ToString()), dr[3].ToString(), double.Parse(dr[4].ToString()), double.Parse(dr[5].ToString()), Int32.Parse(dr[6].ToString()), double.Parse(dr[7].ToString()), double.Parse(dr[8].ToString()));
+                        Odasiljac result = new Models.Odasiljac(dr[0].ToString(), double.Parse(dr[1].ToString()), double.Parse(dr[2].ToString()), dr[3].ToString(), double.Parse(dr[4].ToString()), double.Parse(dr[5].ToString()), Int32.Parse(dr[6].ToString()), double.Parse(dr[7].ToString()), double.Parse(dr[8].ToString()), Int32.Parse(dr[9].ToString()), Int32.Parse(dr[10].ToString()));
                         rezultat.Add(result);
                     }
                     dr.Close();
@@ -111,7 +111,7 @@ namespace GEOSUS_Projekt.Models
 
     public class Odasiljac
     {
-        public Odasiljac(string gradNaziv, double gradXpos, double gradYpos, string odasiljacNaziv, double odasiljacXpos, double odasiljacYpos, int frekvencija, double udaljenost, double snaga)
+        public Odasiljac(string gradNaziv, double gradXpos, double gradYpos, string odasiljacNaziv, double odasiljacXpos, double odasiljacYpos, int frekvencija, double udaljenost, double snaga, int izvornaSnaga, int radijus)
         {
             grad = gradNaziv;
             gradX = gradXpos;
@@ -122,6 +122,8 @@ namespace GEOSUS_Projekt.Models
             this.frekvencija = frekvencija;
             this.udaljenost = udaljenost;
             this.snaga = snaga;
+            this.izvornaSnaga = izvornaSnaga;
+            this.radijus = radijus;
         }
         public string grad { get; set; }
         public double gradX { get; set; }
@@ -134,6 +136,8 @@ namespace GEOSUS_Projekt.Models
         public int frekvencija { get; set; }
         public double udaljenost { get; set; }
         public double snaga { get; set; }
+        public int izvornaSnaga { get; set; }
+        public int radijus { get; set; }
     }
 
     public class Grad
